@@ -4,6 +4,7 @@ services:
     container_name: hs-prometheus
     volumes:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./prometheus/alert_rules.yml:/etc/prometheus/alert_rules.yml:ro
     ports:
       - "9090:9090"
     restart: unless-stopped
@@ -43,4 +44,46 @@ services:
     command: bash -lc "pip install -q fastapi uvicorn requests && uvicorn main:app --host 0.0.0.0 --port 8000"
     ports:
       - "8000:8000"
+    restart: unless-stopped
+
+  alertmanager:
+    image: prom/alertmanager:latest
+    container_name: hs-alertmanager
+    volumes:
+      - ./alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+    ports:
+      - "9093:9093"
+    restart: unless-stopped
+
+  blackbox:
+    image: prom/blackbox-exporter:latest
+    container_name: hs-blackbox
+    ports:
+      - "9115:9115"
+    restart: unless-stopped
+
+
+  hs_backend:
+    image: python:3.11-slim
+    container_name: hs-backend
+    working_dir: /app
+    environment:
+      - PROM_URL=http://hs-prometheus:9090
+    volumes:
+      - ./hs-backend:/app
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: bash -lc "pip install -q -r requirements.txt && uvicorn main:app --host 0.0.0.0 --port 8000"
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+
+  hs_frontend:
+    build:
+      context: ./hs-frontend
+      dockerfile: Dockerfile
+    container_name: hs-frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      - hs_backend
     restart: unless-stopped

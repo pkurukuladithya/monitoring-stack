@@ -1,0 +1,38 @@
+groups:
+  - name: hs-basic-alerts
+    rules:
+      - alert: HighCPUUsage
+        expr: 100 * (1 - avg(rate(node_cpu_seconds_total{mode="idle"}[2m]))) > 90
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU usage"
+          description: "CPU usage is above 90% for 2 minutes."
+
+      - alert: LowDiskSpaceRoot
+        expr: 100 * (1 - (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"})) > 90
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Disk space critically low"
+          description: "Root disk usage is above 90%."
+
+      - alert: ExporterDown
+        expr: up{job="node_exporter"} == 0
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: "Node Exporter is DOWN"
+          description: "Prometheus cannot scrape node_exporter."
+
+      - alert: CadvisorDown
+        expr: up{job="cadvisor"} == 0
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: "cAdvisor is DOWN"
+          description: "Prometheus cannot scrape cAdvisor."

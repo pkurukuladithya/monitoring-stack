@@ -1,0 +1,13 @@
+route:
+  receiver: telegram
+
+receivers:
+  - name: telegram
+    telegram_configs:
+      - bot_token: "8779577061:AAHbe38g9OfbIaJQfonB58YwgLWSihIuBEg"
+        chat_id: 745516751
+        message: |
+          🚨 ALERT: {{ .CommonLabels.alertname }}
+          Severity: {{ .CommonLabels.severity }}
+          {{ .CommonAnnotations.summary }}
+          {{ .CommonAnnotations.description }}
