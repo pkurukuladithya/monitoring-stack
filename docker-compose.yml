@@ -33,3 +33,14 @@ services:
     ports:
       - "3000:3000"
     restart: unless-stopped
+
+  hs_app:
+    image: python:3.11-slim
+    container_name: hs-app
+    working_dir: /app
+    volumes:
+      - ./app:/app
+    command: bash -lc "pip install -q fastapi uvicorn requests && uvicorn main:app --host 0.0.0.0 --port 8000"
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
